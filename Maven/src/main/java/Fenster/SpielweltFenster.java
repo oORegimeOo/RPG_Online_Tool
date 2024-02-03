@@ -176,7 +176,6 @@ abstract class SpielweltFenster extends Fenster {
             y++;
         }
         y = 1;
-        ;
         for (JComboBox attVal : this.attributeValues) {
             bg.add(attVal, createBGC(1, y));
             y++;
