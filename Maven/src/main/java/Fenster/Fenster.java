@@ -20,11 +20,12 @@ abstract class Fenster {
 
     protected void setBackgroundImage(String image) {
         JLabel backgroundImage = new JLabel(new ImageIcon(Data.pathToImages+image));
-        backgroundImage.setLayout(new BorderLayout());
+        backgroundImage.setLayout(new GridBagLayout());
         this.mainFrame.setContentPane(backgroundImage);
     }
 
     protected void showFrame() {
+        this.mainFrame.pack();
         this.mainFrame.setExtendedState(this.mainFrame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
         this.mainFrame.setVisible(true);
     }

@@ -93,8 +93,9 @@ abstract class SpielweltFenster extends Fenster {
     //Platziert die allgemeinen items im Frame
     protected void erstelleMainFrameMitAllgemeinenInhalten() {
         setMenuBarInFrame(getMenuBar());
-        this.mainFrame.add(setCharacterDetailsInPanel(), BorderLayout.NORTH);
-        this.mainFrame.add(setCharacterAttributeInPanel(), BorderLayout.WEST);
+        setCharacterDetailsInPanel();
+        setCharacterAttributeInPanel();
+        addSpacer();
     }
     @Override
     protected JMenuBar getMenuBar() {
@@ -156,39 +157,30 @@ abstract class SpielweltFenster extends Fenster {
         return close;
     }
 
-    protected JPanel setCharacterDetailsInPanel() {
-        JPanel characterDetails = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        characterDetails.add(characterGivenName);
-        characterDetails.add(characterGivenNameInput);
-        characterDetails.add(characterSurname);
-        characterDetails.add(characterSurnameInput);
-        characterDetails.add(checkButton);
+    protected void setCharacterDetailsInPanel() {
+        Container bg = this.mainFrame.getContentPane();
 
-        return characterDetails;
+        bg.add(characterGivenName, createBGC(0,0));
+        bg.add(characterGivenNameInput, createBGC(1,0));
+        bg.add(characterSurname, createBGC(2,0));
+        bg.add(characterSurnameInput, createBGC(3,0));
+        bg.add(checkButton, createBGC(4,0));
     }
-    protected JPanel setCharacterAttributeInPanel() {
-        JPanel charakterAttribute = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        int maxWidthA = 0;
-        int maxWidthAV = 0;
-        int maxHeight = 0;
-        for (int idx = 0; idx < this.systemAttribute.split(",").length; idx++ ) {
-            JPanel attNameValue = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            int widthA = this.attribute[idx].getPreferredSize().width;
-            int widthAV = this.attributeValues[idx].getPreferredSize().width;
-            maxHeight = this.attribute[idx].getPreferredSize().height;
-            if (widthA > maxWidthA) {
-                maxWidthA = widthA;
-            }
-            if (widthAV > maxWidthAV) {
-                maxWidthAV = widthAV;
-            }
-            attNameValue.add(this.attribute[idx]);
-            attNameValue.add(this.attributeValues[idx]);
-            charakterAttribute.add(attNameValue);
-        }
+    @SuppressWarnings("rawtypes")
+    protected void setCharacterAttributeInPanel() {
+        Container bg = this.mainFrame.getContentPane();
 
-        charakterAttribute.setPreferredSize(new Dimension(maxWidthA + maxWidthAV + 25, maxHeight * this.systemAttribute.split(",").length));
-        return charakterAttribute;
+        int y = 1;
+        for (JLabel att : this.attribute) {
+            bg.add(att, createBGC(0, y));
+            y++;
+        }
+        y = 1;
+        ;
+        for (JComboBox attVal : this.attributeValues) {
+            bg.add(attVal, createBGC(1, y));
+            y++;
+        }
     }
 
     //Ändert die veränderbaren items im Frame, nachdem ein Charakter geladen wurde
@@ -208,4 +200,33 @@ abstract class SpielweltFenster extends Fenster {
      * Sie soll die systemspezifischen Eigenschaften updaten.
      */
     abstract protected void updateJFrameAfterLoadCharacterSystemSpecific();
+
+    protected void addSpacer() {
+
+        Container bg = this.mainFrame.getContentPane();
+
+        for (int i = 5; i < 50; i++) {
+            bg.add(new JLabel(""), createBGC(i,0));
+        }
+        for (int i = 9; i < 35; i++) {
+            bg.add(new JLabel(""), createBGC(0,i));
+        }
+    }
+
+    protected GridBagConstraints createBGC(int x, int y) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+
+        gbc.anchor = (x%2 == 0) ? GridBagConstraints.EAST : GridBagConstraints.WEST;
+        //gbc.fill = (x == 0) ? GridBagConstraints.BOTH : GridBagConstraints.HORIZONTAL;
+
+        gbc.insets = (x == 0) ? new Insets(0,0,0,5) : new Insets(0,5,0,0);
+        gbc.weightx = (x == 0) ? 0.1 : 1.0;
+        gbc.weighty = 1;
+
+        return gbc;
+    }
 }
