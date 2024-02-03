@@ -1,6 +1,7 @@
 package Fenster;
 
 import CharacterSheets.CharacterSheet;
+import Data.Data;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicBorders;
@@ -17,10 +18,8 @@ abstract class SpielweltFenster extends Fenster {
     protected JLabel[] attribute;
     @SuppressWarnings("rawtypes")
     protected JComboBox[] attributeValues;
-    protected JLabel characterGivenName;
-    protected JLabel characterSurname;
-    protected JTextField characterGivenNameInput;
-    protected JTextField characterSurnameInput;
+    protected JLabel[] characterDetails;
+    protected JTextField[] characterDetailsInput;
     protected JButton checkButton;
 
     public SpielweltFenster(String name, CharacterSheet cS, String sysAtt) {
@@ -45,23 +44,43 @@ abstract class SpielweltFenster extends Fenster {
         erstelleCharacterAttribute();
     }
     protected void erstelleCharacterDetails() {
-        this.characterGivenName = new JLabel("Vorname:");
-        this.characterGivenName.setOpaque(false);
-        this.characterGivenNameInput = new JTextField("");
-        this.characterGivenNameInput.addActionListener(e -> this.characterSheet.setCharakterVorname(this.characterGivenNameInput.getText()));
-        this.characterGivenNameInput.setColumns(10);
-        this.characterSurname = new JLabel("Nachname:");
-        this.characterSurname.setOpaque(false);
-        this.characterSurnameInput = new JTextField("");
-        this.characterSurnameInput.addActionListener(e -> this.characterSheet.setCharakterNachname(this.characterSurnameInput.getText()));
-        this.characterSurnameInput.setColumns(10);
+        this.characterDetails = new JLabel[this.characterSheet.getAllCharacterDetailNames().size()];
+        this.characterDetailsInput = new JTextField[this.characterSheet.getAllCharacterDetailNames().size()];
+        int idx = 0;
+        for (String detail : Data.characterDetailsDefault.split(",")) {
+            JLabel detailLabel = new JLabel(detail+":");
+            detailLabel.setOpaque(false);
+            detailLabel.setName(detail);
+            this.characterDetails[idx] = detailLabel;
+            this.characterDetailsInput[idx] = getDetailInput(detail, idx);
+            idx++;
+        }
         this.checkButton = new JButton("Übernehmen");
         this.checkButton.setBorder(new BasicBorders.ButtonBorder(Color.BLACK,Color.BLACK,Color.BLACK,Color.BLACK));
         this.checkButton.addActionListener(e -> {
-            this.characterSheet.setCharakterVorname(this.characterGivenNameInput.getText());
-            this.characterSheet.setCharakterNachname(this.characterSurnameInput.getText());
+            int pos = 0;
+            for (String detail : Data.characterDetailsDefault.split(",")) {
+                this.characterSheet.setCharakterDetail(detail, this.characterDetailsInput[pos].getText());
+                pos++;
+            }
         });
     }
+
+    private JTextField getDetailInput(String detail, int idx) {
+        JTextField detailInput = new JTextField("");
+        detailInput.addActionListener(new ActionListener() {
+            final int jComboBoxIdx = idx;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                characterSheet.setCharakterDetail(characterDetails[jComboBoxIdx].getName(),
+                        characterDetailsInput[jComboBoxIdx].getText());
+            }
+        });
+        detailInput.setColumns(10);
+        detailInput.setName(detail +"Input");
+        return detailInput;
+    }
+
     protected void erstelleCharacterAttribute() {
         this.attribute = new JLabel[this.characterSheet.getAllAttributeNames().size()];
         this.attributeValues = new JComboBox[this.characterSheet.getAllAttributeNames().size()];
@@ -160,12 +179,15 @@ abstract class SpielweltFenster extends Fenster {
     protected void setCharacterDetailsInPanel() {
         Container bg = this.mainFrame.getContentPane();
 
-        bg.add(characterGivenName, createBGC(0,0));
-        bg.add(characterGivenNameInput, createBGC(1,0));
-        bg.add(characterSurname, createBGC(2,0));
-        bg.add(characterSurnameInput, createBGC(3,0));
-        bg.add(checkButton, createBGC(4,0));
+        for (int i = 0; i < Data.characterDetailsDefault.split(",").length; i++) {
+            bg.add(this.characterDetails[i], createBGC(2*i,0));
+            bg.add(this.characterDetailsInput[i], createBGC((2*i)+1, 0));
+
+
+        }
+        bg.add(this.checkButton, createBGC(2*(Data.characterDetailsDefault.split(",").length),0));
     }
+
     @SuppressWarnings("rawtypes")
     protected void setCharacterAttributeInPanel() {
         Container bg = this.mainFrame.getContentPane();
@@ -189,8 +211,9 @@ abstract class SpielweltFenster extends Fenster {
             this.attributeValues[idx].setSelectedIndex(this.characterSheet.getValueOfAttribute(att)-1);
             idx++;
         }
-        this.characterGivenNameInput.setText(this.characterSheet.getCharakterVorname());
-        this.characterSurnameInput.setText(this.characterSheet.getCharakterNachname());
+        for (int i = 0; i < Data.characterDetailsDefault.split(",").length; i++) {
+            this.characterDetailsInput[i].setText(this.characterSheet.getCharakterDetail(characterDetails[i].getName()));
+        }
         updateJFrameAfterLoadCharacterSystemSpecific();
     }
 

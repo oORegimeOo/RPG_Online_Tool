@@ -1,5 +1,6 @@
 package CharacterSheets;
 
+import Data.Data;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -22,12 +23,20 @@ public class CharacterSheet {
     //Jeder Charakter besitzt Attribute, die seine körperlichen und geistigen Fähigkeiten wiederspiegeln
     protected HashMap<String, Integer> attribute;
 
-    //Jeder Charakter hat einen Namen
-    protected String charakterVorname;
-    protected String charakterNachname;
+    //Jeder Charakter besitzt Eigenschaften, die ihn beschreiben
+    protected HashMap<String, String> characterDetails;
 
     public CharacterSheet(String attributeNames, int attributeValue, String systemName){
         this.systemName = systemName;
+        this.characterDetails = new HashMap<>();
+        for (String det : Data.characterDetailsDefault.split(",")) {
+            try {
+                characterDetails.put(det, "");
+            } catch (NullPointerException e) {
+                System.out.println("Something went terrible wrong!");
+            }
+        }
+
         this.attribute = new HashMap<>();
         for (String att : attributeNames.split(",")) {
             try {
@@ -55,31 +64,23 @@ public class CharacterSheet {
         return this.systemName;
     }
 
-    public String getCharakterVorname() {
-        return this.charakterVorname;
+    public String getCharakterDetail(String detail) {
+        return this.characterDetails.get(detail);
     }
 
-    public String getCharakterNachname() {
-        return this.charakterNachname;
+    public boolean setCharakterDetail(String characterDetail, String characterDetailInput) {
+        return this.characterDetails.replace(characterDetail, getCharakterDetail(characterDetail), characterDetailInput);
     }
 
-    public void setCharakterVorname(String charakterVorname) {
-        this.charakterVorname = charakterVorname;
-    }
-
-    public void setCharakterNachname(String charakterNachname) {
-        this.charakterNachname = charakterNachname;
-    }
 
     @SuppressWarnings("unchecked")
     public void saveCharakter(){
         try {
             JSONObject charakterSheet = new JSONObject();
-            charakterSheet.put("System", getSystemName());
-            charakterSheet.put("Vorname", getCharakterVorname());
-            charakterSheet.put("Nachname", getCharakterNachname());
-            charakterSheet.putAll(attribute);
-            FileWriter saver = new FileWriter(getCharakterVorname() + getCharakterNachname() + "_" + getSystemName() + ".txt");
+            charakterSheet.put("System", this.systemName);
+            charakterSheet.putAll(this.characterDetails);
+            charakterSheet.putAll(this.attribute);
+            FileWriter saver = new FileWriter(getCharakterDetail("Vorname") + getCharakterDetail("Nachname") + "_" + getSystemName() + ".txt");
             saver.write(charakterSheet.toJSONString());
             saver.flush();
             saver.close();
@@ -91,8 +92,12 @@ public class CharacterSheet {
             JSONParser parser = new JSONParser();
             JSONObject charakterSheet =  (JSONObject) parser.parse(new FileReader(Datei));
             this.systemName = (String) charakterSheet.get("System");
-            setCharakterVorname((String) charakterSheet.get("Vorname"));
-            setCharakterNachname((String) charakterSheet.get("Nachname"));
+            for (String characterDetail : this.characterDetails.keySet()) {
+                boolean isDone = setCharakterDetail(characterDetail, charakterSheet.get(characterDetail).toString());
+                if (!isDone) {
+                    System.out.println("Something went terrible wrong");
+                }
+            }
             for (String attributeName: this.attribute.keySet()) {
                 boolean isDone = setValueOfAttribute(attributeName, Math.toIntExact((long) charakterSheet.get(attributeName)));
                 if (!isDone) {
@@ -104,5 +109,9 @@ public class CharacterSheet {
 
     public Set<String> getAllAttributeNames() {
         return this.attribute.keySet();
+    }
+
+    public Set<String> getAllCharacterDetailNames() {
+        return this.characterDetails.keySet();
     }
 }
